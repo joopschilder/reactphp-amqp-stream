@@ -1,0 +1,24 @@
+{
+  "name": "joopschilder/reactphp-amqp-stream",
+  "description": "Wraps an AMQP consumer to behave like a stream so it can be used in a ReactPHP EventLoop",
+  "type": "library",
+  "require": {
+    "php": "^7.4",
+    "php-amqplib/php-amqplib": "^2.0",
+    "react/event-loop": "^1.1",
+    "react/stream": "^1.1",
+    "joopschilder/reactphp-input-stream": "^0.1.0"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Joop Schilder",
+      "email": "jnmschilder@protonmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "JoopSchilder\\React\\Stream\\AMQP\\": "src"
+    }
+  }
+}
