@@ -6,7 +6,6 @@
     "php": "^7.4",
     "php-amqplib/php-amqplib": "^2.0",
     "react/event-loop": "^1.1",
-    "react/stream": "^1.1",
     "joopschilder/reactphp-input-stream": "^0.1.0"
   },
   "license": "MIT",
