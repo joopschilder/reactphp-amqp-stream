@@ -2,11 +2,11 @@
 
 namespace JoopSchilder\React\Stream\AMQP;
 
+use JoopSchilder\React\Stream\AMQP\ValueObject\BasicConsume;
 use JoopSchilder\React\Stream\AMQP\ValueObject\ConsumerTag;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Exchange;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Queue;
 use JoopSchilder\React\Stream\NonBlockingInput\NonBlockingInputInterface;
-use PhpAmqpLib\Channel\AbstractChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -14,11 +14,13 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 {
 	protected AbstractConnection $connection;
 
-	protected AbstractChannel $channel;
+	protected Channel $channel;
 
 	protected Queue $queue;
 
 	protected ConsumerTag $tag;
+
+	protected BasicConsume $consume;
 
 	protected ?Exchange $exchange;
 
@@ -39,11 +41,13 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 		$this->queue = $queue;
 		$this->exchange = $exchange;
 		$this->tag = $tag ?? new ConsumerTag();
+		$this->consume = new BasicConsume($this->queue, $this->tag);
 
-		$this->channel = $this->connection->channel();
-		$this->setupQueue();
+		$this->channel = new Channel($this->connection->channel());
+		$this->channel->declareQueue($queue);
 		if (!is_null($this->exchange)) {
-			$this->setupAndBindExchange();
+			$this->channel->declareExchange($exchange);
+			$this->channel->bindQueue($queue, $exchange);
 		}
 		$this->open();
 	}
@@ -51,10 +55,10 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 
 	public function select(): ?Message
 	{
-		if (!$this->channel->is_consuming()) {
+		if (!$this->channel->isConsuming()) {
 			return null;
 		}
-		$this->channel->wait(null, true);
+		$this->channel->waitNonBlocking();
 
 		return array_shift($this->buffer);
 	}
@@ -65,6 +69,7 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 		if (!$this->closed) {
 			return;
 		}
+
 		$this->channel->basic_consume(
 			$this->queue->getName(),
 			$this->tag->getTag(),
@@ -88,20 +93,6 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 	}
 
 
-	private function setupQueue(): void
-	{
-		$this->channel->queue_declare(
-			$this->queue->getName(),
-			$this->queue->isPassive(),
-			$this->queue->isDurable(),
-			$this->queue->isExclusive(),
-			$this->queue->isAutoDelete(),
-			$this->queue->isNoWait(),
-			$this->queue->getArguments(),
-			$this->queue->getTicket()
-		);
-	}
-
 
 	private function setupAndBindExchange(): void
 	{
@@ -115,10 +106,6 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 			$this->exchange->isNoWait(),
 			$this->exchange->getArguments(),
 			$this->exchange->getTicket()
-		);
-		$this->channel->queue_bind(
-			$this->queue->getName(),
-			$this->exchange->getName()
 		);
 	}
 

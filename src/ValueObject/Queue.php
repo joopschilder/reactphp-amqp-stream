@@ -21,7 +21,7 @@ final class Queue
 	private ?int $ticket = null;
 
 
-	public function __construct(string $name)
+	public function __construct(string $name = '')
 	{
 		$this->name = $name;
 	}
