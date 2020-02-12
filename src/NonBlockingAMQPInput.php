@@ -10,7 +10,7 @@ use JoopSchilder\React\Stream\NonBlockingInput\NonBlockingInputInterface;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
+final class NonBlockingAMQPInput implements NonBlockingInputInterface
 {
 	protected AbstractConnection $connection;
 
@@ -18,11 +18,11 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 
 	protected Queue $queue;
 
+	protected ?Exchange $exchange;
+
 	protected ConsumerTag $tag;
 
 	protected BasicConsume $consume;
-
-	protected ?Exchange $exchange;
 
 	private bool $closed = true;
 
@@ -41,14 +41,10 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 		$this->queue = $queue;
 		$this->exchange = $exchange;
 		$this->tag = $tag ?? new ConsumerTag();
-		$this->consume = new BasicConsume($this->queue, $this->tag);
-
 		$this->channel = new Channel($this->connection->channel());
-		$this->channel->declareQueue($queue);
-		if (!is_null($this->exchange)) {
-			$this->channel->declareExchange($exchange);
-			$this->channel->bindQueue($queue, $exchange);
-		}
+
+		$this->setupRouting();
+		$this->setupConsume();
 		$this->open();
 	}
 
@@ -69,16 +65,7 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 		if (!$this->closed) {
 			return;
 		}
-
-		$this->channel->basic_consume(
-			$this->queue->getName(),
-			$this->tag->getTag(),
-			false,
-			false,
-			false,
-			false,
-			fn(AMQPMessage $message) => $this->buffer[] = new Message($message)
-		);
+		$this->channel->basicConsume($this->consume);
 		$this->closed = false;
 	}
 
@@ -88,25 +75,30 @@ final class NonBlockingAMQPConsumer implements NonBlockingInputInterface
 		if ($this->closed) {
 			return;
 		}
-		$this->channel->basic_cancel($this->tag->getTag());
+		$this->channel->basicCancel($this->tag);
 		$this->closed = true;
 	}
 
 
-
-	private function setupAndBindExchange(): void
+	private function setupConsume(): void
 	{
-		$this->channel->exchange_declare(
-			$this->exchange->getName(),
-			$this->exchange->getType(),
-			$this->exchange->isPassive(),
-			$this->exchange->isDurable(),
-			$this->exchange->isAutoDelete(),
-			$this->exchange->isInternal(),
-			$this->exchange->isNoWait(),
-			$this->exchange->getArguments(),
-			$this->exchange->getTicket()
-		);
+		$this->consume = BasicConsume::create($this->queue)
+			->setTag($this->tag)
+			->setCallback(function (AMQPMessage $message) {
+				$message = new Message($message);
+				$this->tag = $message->getTag();
+				$this->buffer[] = $message;
+			});
+	}
+
+
+	private function setupRouting(): void
+	{
+		$this->channel->declareQueue($this->queue);
+		if (!is_null($this->exchange)) {
+			$this->channel->declareExchange($this->exchange);
+			$this->channel->bindQueue($this->queue, $this->exchange);
+		}
 	}
 
 

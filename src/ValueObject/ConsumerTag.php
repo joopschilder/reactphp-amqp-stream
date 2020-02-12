@@ -13,6 +13,12 @@ final class ConsumerTag
 	}
 
 
+	public function isDefault(): bool
+	{
+		return strlen($this->tag) === 0;
+	}
+
+
 	public function getTag(): string
 	{
 		return $this->tag;

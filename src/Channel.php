@@ -3,6 +3,7 @@
 namespace JoopSchilder\React\Stream\AMQP;
 
 use JoopSchilder\React\Stream\AMQP\ValueObject\BasicConsume;
+use JoopSchilder\React\Stream\AMQP\ValueObject\ConsumerTag;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Exchange;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Queue;
 use PhpAmqpLib\Channel\AMQPChannel;
@@ -34,6 +35,12 @@ final class Channel
 	public function waitNonBlocking(): void
 	{
 		$this->channel->wait(null, true);
+	}
+
+
+	public function basicCancel(ConsumerTag $tag): void
+	{
+		$this->channel->basic_cancel($tag->getTag());
 	}
 
 

@@ -5,14 +5,14 @@ This package provides a way to work with AMQP messages as if it were a stream in
 
 ```php
 use JoopSchilder\React\Stream\AMQP\Message;
-use JoopSchilder\React\Stream\AMQP\NonBlockingAMQPConsumer;
+use JoopSchilder\React\Stream\AMQP\NonBlockingAMQPInput;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Queue;
 use JoopSchilder\React\Stream\NonBlockingInput\ReadableNonBlockingInputStream;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use React\EventLoop\Factory;
 
 $connection = new AMQPStreamConnection('localhost', '5672', 'guest', 'guest');
-$consumer = new NonBlockingAMQPConsumer($connection, new Queue('my_command_queue'));
+$consumer = new NonBlockingAMQPInput($connection, new Queue('my_command_queue'));
 
 $loop = Factory::create();
 $stream = new ReadableNonBlockingInputStream($consumer, $loop);

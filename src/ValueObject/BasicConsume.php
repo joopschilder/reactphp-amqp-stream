@@ -24,10 +24,16 @@ final class BasicConsume
 	private array $arguments = [];
 
 
-	public function __construct(?Queue $queue = null, ?ConsumerTag $tag = null)
+	public function __construct(Queue $queue, ?ConsumerTag $tag = null)
 	{
-		$this->queue = $queue ?? new Queue();
+		$this->queue = $queue;
 		$this->tag = $tag ?? new ConsumerTag();
+	}
+
+
+	public static function create(Queue $queue): self
+	{
+		return new self($queue);
 	}
 
 
@@ -37,11 +43,19 @@ final class BasicConsume
 	}
 
 
+	public function setTag(?ConsumerTag $tag): self
+	{
+		$this->tag = $tag;
+
+		return $this;
+	}
+
+
 	public function getTag(): ?ConsumerTag
 	{
 		return $this->tag;
 	}
-	
+
 
 	public function isNoLocal(): bool
 	{

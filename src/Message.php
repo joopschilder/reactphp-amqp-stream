@@ -2,11 +2,14 @@
 
 namespace JoopSchilder\React\Stream\AMQP;
 
+use JoopSchilder\React\Stream\AMQP\ValueObject\ConsumerTag;
 use PhpAmqpLib\Message\AMQPMessage;
 
 final class Message
 {
 	protected AMQPMessage $AMQPMessage;
+
+	protected ConsumerTag $tag;
 
 	protected bool $isAcknowledged = false;
 
@@ -14,6 +17,7 @@ final class Message
 	public final function __construct(AMQPMessage $AMQPMessage)
 	{
 		$this->AMQPMessage = $AMQPMessage;
+		$this->tag = new ConsumerTag($this->AMQPMessage->delivery_info['consumer_tag']);
 	}
 
 
@@ -23,15 +27,20 @@ final class Message
 	}
 
 
+	public final function getTag(): ConsumerTag
+	{
+		return $this->tag;
+	}
+
+
 	public final function acknowledge(): void
 	{
 		if ($this->isAcknowledged) {
 			return;
 		}
 
-		$tag = $this->AMQPMessage->delivery_info['delivery_tag'];
-		$channel = $this->AMQPMessage->delivery_info['channel'];
-		$channel->basic_ack($tag);
+		$info = &$this->AMQPMessage->delivery_info;
+		$info['channel']->basic_ack($info['delivery_tag']);
 		$this->isAcknowledged = true;
 	}
 
