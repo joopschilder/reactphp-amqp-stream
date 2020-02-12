@@ -1,22 +1,35 @@
 <?php
 
 use JoopSchilder\React\Stream\AMQP\Message;
-use JoopSchilder\React\Stream\AMQP\NonBlockingAMQPInput;
+use JoopSchilder\React\Stream\AMQP\NonBlockingAMQPInputBuilder;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Queue;
 use JoopSchilder\React\Stream\NonBlockingInput\ReadableNonBlockingInputStream;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
 use React\EventLoop\Factory;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$connection = new AMQPStreamConnection('localhost', '5672', 'guest', 'guest');
-$input = new NonBlockingAMQPInput($connection, new Queue('my_command_queue'));
+// Define a queue:
+$queue = new Queue('my_queue');
 
+// Static factory method is available too:
+$queue = Queue::create('my_queue')->setIsDurable(true);
+
+// The builder allows you to define an exchange or a custom connection.
+// By default, an AMQPStreamConnection is used (guest:guest@localhost:5672).
+$input = NonBlockingAMQPInputBuilder::create($queue)->build();
+
+// Create the EventLoop and add the AMQP consumer input to it:
 $loop = Factory::create();
 $stream = new ReadableNonBlockingInputStream($input, $loop);
-$stream->on('data', function (Message $m) {
-	print('m');
-	$m->acknowledge();
-});
+
+// By default, a message needs to be acknowledged.
+// An option will be added to enable auto acknowledgement and some more
+// advanced behaviors (acknowledge on receive, acknowledge after handlers).
+$stream->on('data', fn(Message $message) => print('m'));
+$stream->on('data', fn(Message $message) => $message->acknowledge());
+
+// Add a timer for demonstration purposes...
 $loop->addPeriodicTimer(0.2, fn() => print('.'));
+
+// Run it.
 $loop->run();
