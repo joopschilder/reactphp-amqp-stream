@@ -9,15 +9,20 @@ final class Message
 {
 	protected AMQPMessage $AMQPMessage;
 
+	protected array $info;
+
 	protected ConsumerTag $tag;
 
-	protected bool $isAcknowledged = false;
+	protected bool $ackedOrNacked = false;
 
 
-	public final function __construct(AMQPMessage $AMQPMessage)
+	public final function __construct(AMQPMessage $AMQPMessage, bool $isNoAck = false)
 	{
 		$this->AMQPMessage = $AMQPMessage;
-		$this->tag = new ConsumerTag($this->AMQPMessage->delivery_info['consumer_tag']);
+		$this->ackedOrNacked = $isNoAck;
+
+		$this->info = &$this->AMQPMessage->delivery_info;
+		$this->tag = new ConsumerTag($this->info['consumer_tag']);
 	}
 
 
@@ -33,15 +38,23 @@ final class Message
 	}
 
 
-	public final function acknowledge(): void
+	public final function ack(): void
 	{
-		if ($this->isAcknowledged) {
+		if ($this->ackedOrNacked) {
 			return;
 		}
+		$this->info['channel']->basic_ack($this->info['delivery_tag']);
+		$this->ackedOrNacked = true;
+	}
 
-		$info = &$this->AMQPMessage->delivery_info;
-		$info['channel']->basic_ack($info['delivery_tag']);
-		$this->isAcknowledged = true;
+
+	public function nack(): void
+	{
+		if ($this->ackedOrNacked) {
+			return;
+		}
+		$this->info['channel']->basic_nack($this->info['delivery_tag']);
+		$this->ackedOrNacked = true;
 	}
 
 }

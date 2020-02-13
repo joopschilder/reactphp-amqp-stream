@@ -13,6 +13,12 @@ final class ConsumerTag
 	}
 
 
+	public static function format(string $format, ...$args): self
+	{
+		return new self(sprintf($format, ...$args));
+	}
+
+
 	public function isDefault(): bool
 	{
 		return strlen($this->tag) === 0;

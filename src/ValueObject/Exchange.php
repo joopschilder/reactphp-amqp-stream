@@ -18,11 +18,11 @@ final class Exchange
 
 	private string $type = AMQPExchangeType::DIRECT;
 
-	private bool $isPassive = false;
+	private bool $passive = false;
 
-	private bool $isDurable = false;
+	private bool $durable = false;
 
-	private bool $isAutoDelete = true;
+	private bool $autoDelete = true;
 
 	private bool $isInternal = false;
 
@@ -77,13 +77,13 @@ final class Exchange
 
 	public function isPassive(): bool
 	{
-		return $this->isPassive;
+		return $this->passive;
 	}
 
 
-	public function setIsPassive(bool $isPassive): self
+	public function setPassive(bool $isPassive): self
 	{
-		$this->isPassive = $isPassive;
+		$this->passive = $isPassive;
 
 		return $this;
 	}
@@ -91,13 +91,13 @@ final class Exchange
 
 	public function isDurable(): bool
 	{
-		return $this->isDurable;
+		return $this->durable;
 	}
 
 
-	public function setIsDurable(bool $isDurable): self
+	public function setDurable(bool $isDurable): self
 	{
-		$this->isDurable = $isDurable;
+		$this->durable = $isDurable;
 
 		return $this;
 	}
@@ -105,13 +105,13 @@ final class Exchange
 
 	public function isAutoDelete(): bool
 	{
-		return $this->isAutoDelete;
+		return $this->autoDelete;
 	}
 
 
-	public function setIsAutoDelete(bool $isAutoDelete): self
+	public function setAutoDelete(bool $isAutoDelete): self
 	{
-		$this->isAutoDelete = $isAutoDelete;
+		$this->autoDelete = $isAutoDelete;
 
 		return $this;
 	}

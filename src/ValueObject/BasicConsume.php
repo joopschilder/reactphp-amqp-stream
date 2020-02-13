@@ -8,20 +8,10 @@ final class BasicConsume
 
 	private ConsumerTag $tag;
 
-	private bool $noLocal = false;
-
-	private bool $noAck = false;
-
-	private bool $exclusive = false;
-
-	private bool $nowait = false;
+	private ConsumeArguments $arguments;
 
 	/** @var callable|null */
 	private $callback = null;
-
-	private ?int $ticket = null;
-
-	private array $arguments = [];
 
 
 	public function __construct(Queue $queue, ?ConsumerTag $tag = null)
@@ -34,6 +24,12 @@ final class BasicConsume
 	public static function create(Queue $queue): self
 	{
 		return new self($queue);
+	}
+
+
+	public function setArguments(ConsumeArguments $arguments): void
+	{
+		$this->arguments = $arguments;
 	}
 
 
@@ -57,62 +53,6 @@ final class BasicConsume
 	}
 
 
-	public function isNoLocal(): bool
-	{
-		return $this->noLocal;
-	}
-
-
-	public function setNoLocal(bool $noLocal): self
-	{
-		$this->noLocal = $noLocal;
-
-		return $this;
-	}
-
-
-	public function isNoAck(): bool
-	{
-		return $this->noAck;
-	}
-
-
-	public function setNoAck(bool $noAck): self
-	{
-		$this->noAck = $noAck;
-
-		return $this;
-	}
-
-
-	public function isExclusive(): bool
-	{
-		return $this->exclusive;
-	}
-
-
-	public function setExclusive(bool $exclusive): self
-	{
-		$this->exclusive = $exclusive;
-
-		return $this;
-	}
-
-
-	public function isNowait(): bool
-	{
-		return $this->nowait;
-	}
-
-
-	public function setNowait(bool $nowait): self
-	{
-		$this->nowait = $nowait;
-
-		return $this;
-	}
-
-
 	public function getCallback(): ?callable
 	{
 		return $this->callback;
@@ -127,31 +67,11 @@ final class BasicConsume
 	}
 
 
-	public function getTicket(): ?int
+	public function getArguments(): ConsumeArguments
 	{
-		return $this->ticket;
-	}
+		$this->arguments ??= new ConsumeArguments();
 
-
-	public function setTicket(int $ticket): self
-	{
-		$this->ticket = $ticket;
-
-		return $this;
-	}
-
-
-	public function getArguments(): array
-	{
 		return $this->arguments;
-	}
-
-
-	public function setArguments(array $arguments): self
-	{
-		$this->arguments = $arguments;
-
-		return $this;
 	}
 
 }

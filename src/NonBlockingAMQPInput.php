@@ -3,6 +3,7 @@
 namespace JoopSchilder\React\Stream\AMQP;
 
 use JoopSchilder\React\Stream\AMQP\ValueObject\BasicConsume;
+use JoopSchilder\React\Stream\AMQP\ValueObject\ConsumeArguments;
 use JoopSchilder\React\Stream\AMQP\ValueObject\ConsumerTag;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Exchange;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Queue;
@@ -20,7 +21,7 @@ final class NonBlockingAMQPInput implements NonBlockingInputInterface
 
 	protected ?Exchange $exchange;
 
-	protected ConsumerTag $tag;
+	protected ConsumerTag $consumerTag;
 
 	protected BasicConsume $consume;
 
@@ -34,17 +35,18 @@ final class NonBlockingAMQPInput implements NonBlockingInputInterface
 		AbstractConnection $connection,
 		Queue $queue,
 		?Exchange $exchange = null,
-		?ConsumerTag $tag = null
+		?ConsumerTag $consumerTag = null,
+		?ConsumeArguments $arguments = null
 	)
 	{
 		$this->connection = $connection;
 		$this->queue = $queue;
 		$this->exchange = $exchange;
-		$this->tag = $tag ?? new ConsumerTag();
+		$this->consumerTag = $consumerTag ?? new ConsumerTag();
 		$this->channel = new Channel($this->connection->channel());
 
 		$this->setupRouting();
-		$this->setupConsume();
+		$this->setupConsume($arguments);
 		$this->open();
 	}
 
@@ -75,20 +77,25 @@ final class NonBlockingAMQPInput implements NonBlockingInputInterface
 		if ($this->closed) {
 			return;
 		}
-		$this->channel->basicCancel($this->tag);
+		$this->channel->basicCancel($this->consumerTag);
 		$this->closed = true;
 	}
 
 
-	private function setupConsume(): void
+	private function setupConsume(?ConsumeArguments $arguments = null): void
 	{
-		$this->consume = BasicConsume::create($this->queue)
-			->setTag($this->tag)
-			->setCallback(function (AMQPMessage $message) {
-				$message = new Message($message);
-				$this->tag = $message->getTag();
-				$this->buffer[] = $message;
-			});
+		$this->consume = new BasicConsume($this->queue, $this->consumerTag);
+		if (!is_null($arguments)) {
+			$this->consume->setArguments($arguments);
+		}
+
+		$isNoAck = $this->consume->getArguments()->isNoAck();
+		$messageFactory = fn(AMQPMessage $message): Message => new Message($message, $isNoAck);
+		$this->consume->setCallback(function (AMQPMessage $message) use (&$messageFactory) {
+			$message = $messageFactory($message);
+			$this->consumerTag = $message->getTag();
+			$this->buffer[] = $message;
+		});
 	}
 
 

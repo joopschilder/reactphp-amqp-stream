@@ -2,6 +2,7 @@
 
 namespace JoopSchilder\React\Stream\AMQP;
 
+use JoopSchilder\React\Stream\AMQP\ValueObject\ConsumeArguments;
 use JoopSchilder\React\Stream\AMQP\ValueObject\ConsumerTag;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Exchange;
 use JoopSchilder\React\Stream\AMQP\ValueObject\Queue;
@@ -17,7 +18,9 @@ final class NonBlockingAMQPInputBuilder
 
 	private ?Exchange $exchange = null;
 
-	private ?ConsumerTag $tag = null;
+	private ?ConsumerTag $consumerTag = null;
+
+	private ?ConsumeArguments $consumeArguments = null;
 
 
 	private function __construct(Queue $queue)
@@ -48,9 +51,17 @@ final class NonBlockingAMQPInputBuilder
 	}
 
 
-	public function setTag(ConsumerTag $tag): self
+	public function setConsumerTag(ConsumerTag $consumerTag): self
 	{
-		$this->tag = $tag;
+		$this->consumerTag = $consumerTag;
+
+		return $this;
+	}
+
+
+	public function setConsumeArguments(?ConsumeArguments $consumeArguments): self
+	{
+		$this->consumeArguments = $consumeArguments;
 
 		return $this;
 	}
@@ -62,7 +73,8 @@ final class NonBlockingAMQPInputBuilder
 			$this->connection ?? new AMQPStreamConnection('localhost', '5672', 'guest', 'guest'),
 			$this->queue,
 			$this->exchange,
-			$this->tag
+			$this->consumerTag,
+			$this->consumeArguments
 		);
 	}
 

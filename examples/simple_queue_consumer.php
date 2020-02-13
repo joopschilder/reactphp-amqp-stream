@@ -11,9 +11,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // Define a queue:
 $queue = new Queue('my_queue');
 
-// Static factory method is available too:
-$queue = Queue::create('my_queue')->setIsDurable(true);
-
 // The builder allows you to define an exchange or a custom connection.
 // By default, an AMQPStreamConnection is used (guest:guest@localhost:5672).
 $input = NonBlockingAMQPInputBuilder::create($queue)->build();
@@ -23,10 +20,8 @@ $loop = Factory::create();
 $stream = new ReadableNonBlockingInputStream($input, $loop);
 
 // By default, a message needs to be acknowledged.
-// An option will be added to enable auto acknowledgement and some more
-// advanced behaviors (acknowledge on receive, acknowledge after handlers).
 $stream->on('data', fn(Message $message) => print('m'));
-$stream->on('data', fn(Message $message) => $message->acknowledge());
+$stream->on('data', fn(Message $message) => $message->ack());
 
 // Add a timer for demonstration purposes...
 $loop->addPeriodicTimer(0.2, fn() => print('.'));

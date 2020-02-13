@@ -86,16 +86,17 @@ final class Channel
 
 	public function basicConsume(BasicConsume $consume): void
 	{
+		$arguments = $consume->getArguments();
 		$this->channel->basic_consume(
 			$consume->getQueue()->getName(),
 			$consume->getTag()->getTag(),
-			$consume->isNoLocal(),
-			$consume->isNoAck(),
-			$consume->isExclusive(),
-			$consume->isNowait(),
+			$arguments->isNoLocal(),
+			$arguments->isNoAck(),
+			$arguments->isExclusive(),
+			$arguments->isNowait(),
 			$consume->getCallback(),
-			$consume->getTicket(),
-			$consume->getArguments()
+			$arguments->getTicket(),
+			$arguments->getArguments()
 		);
 	}
 

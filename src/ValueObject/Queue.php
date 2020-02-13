@@ -6,13 +6,13 @@ final class Queue
 {
 	private string $name;
 
-	private bool $isPassive = false;
+	private bool $passive = false;
 
-	private bool $isDurable = true;
+	private bool $durable = true;
 
-	private bool $isExclusive = false;
+	private bool $exclusive = false;
 
-	private bool $isAutoDelete = false;
+	private bool $autoDelete = false;
 
 	private bool $noWait = false;
 
@@ -41,13 +41,13 @@ final class Queue
 
 	public function isPassive(): bool
 	{
-		return $this->isPassive;
+		return $this->passive;
 	}
 
 
-	public function setIsPassive(bool $isPassive): self
+	public function setPassive(bool $passive): self
 	{
-		$this->isPassive = $isPassive;
+		$this->passive = $passive;
 
 		return $this;
 	}
@@ -55,13 +55,13 @@ final class Queue
 
 	public function isDurable(): bool
 	{
-		return $this->isDurable;
+		return $this->durable;
 	}
 
 
-	public function setIsDurable(bool $isDurable): self
+	public function setDurable(bool $durable): self
 	{
-		$this->isDurable = $isDurable;
+		$this->durable = $durable;
 
 		return $this;
 	}
@@ -69,13 +69,13 @@ final class Queue
 
 	public function isExclusive(): bool
 	{
-		return $this->isExclusive;
+		return $this->exclusive;
 	}
 
 
-	public function setIsExclusive(bool $isExclusive): self
+	public function setExclusive(bool $exclusive): self
 	{
-		$this->isExclusive = $isExclusive;
+		$this->exclusive = $exclusive;
 
 		return $this;
 	}
@@ -83,13 +83,13 @@ final class Queue
 
 	public function isAutoDelete(): bool
 	{
-		return $this->isAutoDelete;
+		return $this->autoDelete;
 	}
 
 
-	public function setIsAutoDelete(bool $isAutoDelete): self
+	public function setAutoDelete(bool $autoDelete): self
 	{
-		$this->isAutoDelete = $isAutoDelete;
+		$this->autoDelete = $autoDelete;
 
 		return $this;
 	}
